@@ -1,0 +1,16 @@
+# In case docker compose release new version, prevent broken
+version: "3.9"
+
+services:
+  app:
+    build:
+      # Use root dir
+      context: .
+    ports:
+      # Port mapping, map port 8000 in local machine to 8000 in server
+      - "8000:8000"
+    volumes:
+      # Mapping
+      - ./app:/app
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
