@@ -6,6 +6,8 @@ services:
     build:
       # Use root dir
       context: .
+      args:
+        - DEV=true
     ports:
       # Port mapping, map port 8000 in local machine to 8000 in server
       - "8000:8000"
