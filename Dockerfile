@@ -15,6 +15,10 @@ ARG DEV=false
     # Avoid python dependencies confliction
 RUN python -m venv /py && \    
     /py/bin/pip install --upgrade pip && \
+    apk add --update --no-cache postgresql-client && \
+    apk add --update --no-cache --virtual .tmp-build-deps \
+        # These will be removed after running because we just require it and are not going to use it.
+        build-base postgresql-dev musl-dev && \
     /py/bin/pip install -r /tmp/requirements.txt && \
     if [ $DEV = "true" ]; \
         then /py/bin/pip install -r /tmp/requirements.dev.txt ; \
@@ -22,6 +26,7 @@ RUN python -m venv /py && \
     # Keep Docker images as lightweight as possible (don't want extra dependencies)
     # Saves spaces and speed
     rm -rf /tmp && \
+    apk del .tmp-build-deps && \
     # Not to use the root user
     # Not recommended to run the applications using the root user
     # If app got compromised, the attacker can get full access 
