@@ -13,6 +13,7 @@ from django.core.management import call_command
 from django.db.utils import OperationalError
 from django.test import SimpleTestCase
 
+
 # Django BaseCommand has a method: check, and we're going to mock it.
 @patch('core.management.commands.wait_for_db.Command.check')
 class CommandTest(SimpleTestCase):
@@ -24,7 +25,8 @@ class CommandTest(SimpleTestCase):
         patched_check.return_value = True
         call_command('wait_for_db')
 
-        # This check our mock command is called with these parameters(database=['default'])
+        # This check our mock command is called with
+        # these parameters(database=['default'])
         patched_check.assert_called_once_with(databases=['default'])
 
     """
@@ -38,12 +40,15 @@ class CommandTest(SimpleTestCase):
 
         """
         Explanation:
-            The first two times we called the mocked method, we want to raise Psycopg2Error.
+            The first two times we called the mocked method,
+            we want to raise Psycopg2Error.
             Then next three times raise OperationalError
 
-        Here We will raise two different exception for different stage of database setup.
-        Psycopg2Error: Database hasn't set up, unable to be connected
-        OperationalError: Ready to be connected, but hasn't set up testing database
+        Here We will raise two different exception for different stage of
+        database setup.
+            Psycopg2Error:      Database hasn't set up, unable to be connected
+            OperationalError:   Ready to be connected, but hasn't set up
+                                testing database
         """
         # Makes it raise an exception instead of return a value.
         patched_check.side_effect = [Psycopg2Error] * 2 + \
