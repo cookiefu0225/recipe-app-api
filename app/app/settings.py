@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 # Enabling apps
+# To create app, use python manage.py startapp {app_name}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     'core',
     'rest_framework',
     'drf_spectacular',
+    'user',
 ]
 
 MIDDLEWARE = [
