@@ -1,7 +1,7 @@
 """
 Database models.
 """
-
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -45,3 +45,23 @@ class User(AbstractBaseUser, PermissionsMixin):
     # We use this for authentication, this is how
     # wo replace username
     USERNAME_FIELD = 'email'
+
+
+class Recipe(models.Model):
+    """Recipe object."""
+    # Set user of the recipe.
+    user = models.ForeignKey(
+        # We defined it in settings, it can be typed directly.
+        # However, it's better to access by AUTH_USER_MODEL.
+        settings.AUTH_USER_MODEL,
+        # If the user is removed, the recipes would be removed as well.
+        on_delete=models.CASCADE,
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    time_minutes = models.IntegerField()
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    link = models.CharField(max_length=255, blank=True)
+
+    def __str__(self) -> str:
+        return self.title
