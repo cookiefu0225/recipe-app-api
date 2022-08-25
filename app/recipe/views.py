@@ -12,6 +12,7 @@ from recipe import serializers
 # viewsets generate many endpoint,
 # use viewset when you create API with CRUD actions
 class RecipeViewSet(viewsets.ModelViewSet):
+    # The following texts in dots will generate in api description.
     """View for manage recipe APIs."""
     serializer_class = serializers.RecipeDetailSerializer
     # Represent the objects that available for this viewset
@@ -35,3 +36,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return serializers.RecipeSerializer
 
         return self.serializer_class
+
+    # The function name matters!
+    # Cannot use other function name.
+    def perform_create(self, serializer):
+        """Create a new recipe."""
+        serializer.save(user=self.request.user)
