@@ -1,6 +1,9 @@
 """
 Database models.
 """
+# After creating a new model, be sure to apply migrations before test.
+# After testing, we need to register the model in django admin.
+# For this app, go to core/admin.py
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import (
@@ -62,6 +65,22 @@ class Recipe(models.Model):
     time_minutes = models.IntegerField()
     price = models.DecimalField(max_digits=5, decimal_places=2)
     link = models.CharField(max_length=255, blank=True)
+    # Any of our tags can be associated with our recipes,
+    # any of our recipes can be associated with our tags.
+    tags = models.ManyToManyField('Tag')
 
     def __str__(self) -> str:
         return self.title
+
+
+class Tag(models.Model):
+    """Tag object."""
+    # Set user of the tag.
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    context = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return self.context
