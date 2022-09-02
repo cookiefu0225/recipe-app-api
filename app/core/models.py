@@ -1,6 +1,10 @@
 """
 Database models.
 """
+import uuid
+# Import os is for the path manipulation functions
+import os
+
 # After creating a new model, be sure to apply migrations before test.
 # After testing, we need to register the model in django admin.
 # For this app, go to core/admin.py
@@ -11,6 +15,18 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+
+
+def recipe_image_file_path(instance, filename):
+    """Generate file path for new recipe image."""
+    # ext = extention, like .jpg, .png
+    ext = os.path.splitext(filename)[1]
+    # Generate unique uid for a image
+    filename = f'{uuid.uuid4()}{ext}'
+
+    # The string is created with the proper format for
+    # the os we run. Ex: \upload\recipe\<filename> in Windows
+    return os.path.join('uploads', 'recipe', filename)
 
 
 class UserManager(BaseUserManager):
@@ -69,6 +85,10 @@ class Recipe(models.Model):
     # any of our recipes can be associated with our tags.
     tags = models.ManyToManyField('Tag')
     ingredients = models.ManyToManyField('Ingredient')
+    # We are not calling recipe_image_file_path, do not add ().
+    # We are just pass a reference to the function.
+    # This path generate method is documented in Django docs.
+    image = models.ImageField(null=True, upload_to=recipe_image_file_path)
 
     def __str__(self) -> str:
         return self.title

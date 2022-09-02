@@ -2,6 +2,11 @@
 Test for recipe APIs.
 """
 from decimal import Decimal
+import tempfile
+import os
+
+# PIL is the Pillow lib we installed
+from PIL import Image
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -23,6 +28,11 @@ def detail_url(recipe_id):
     # We create a function because we have to pass recipe id
     # This can generate a unique url for specific recipe detail endpoint
     return reverse('recipe:recipe-detail', args=[recipe_id])
+
+
+def image_upload_url(recipe_id):
+    """Create and return an image upload URL."""
+    return reverse('recipe:recipe-upload-image', args=[recipe_id])
 
 
 # params is dictionary
@@ -385,3 +395,56 @@ class PrivateRecipeAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(recipe.ingredients.count(), 0)
+
+
+class ImageUploadTests(TestCase):
+    """Tests for the image upload API."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = create_user(
+            email='user@example.com',
+            password='testpass123'
+        )
+        self.client.force_authenticate(self.user)
+        self.recipe = create_recipe(user=self.user)
+
+    # Similar to setUp, but it runs after the test.
+    def tearDown(self):
+        # Delete the image we upload cause we don't want to
+        # be building up test images on our machine every time we run test.
+        self.recipe.image.delete()
+
+    def test_upload_image(self):
+        """Test uploading an image to a recipe."""
+        url = image_upload_url(self.recipe.id)
+        # Helper module provided by Python that allows you to create
+        # temporary files.
+        # As this block ends, the file will be cleared
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as image_file:
+            # Create a tmp. file to test our uploading functionality.
+            # This img represents the file user uploads.
+            img = Image.new('RGB', (10, 10))
+            # Save the image to image file
+            img.save(image_file, format='JPEG')
+            # This uploads the pointer
+            # After save, the pointer goes to the end of the file.
+            image_file.seek(0)
+            payload = {'image': image_file}
+            # Post in multipart form, which is the best practice way to
+            # upload images using Django rest framework.
+            res = self.client.post(url, payload, format='multipart')
+
+        self.recipe.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        # Check image field is in response
+        self.assertIn('image', res.data)
+        self.assertTrue(os.path.exists(self.recipe.image.path))
+
+    def test_upload_image_bad_request(self):
+        """Test uploading invalid image."""
+        url = image_upload_url(self.recipe.id)
+        payload = {'image': 'not an image'}
+        res = self.client.post(url, payload, format='multipart')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

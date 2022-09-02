@@ -13,12 +13,12 @@ EXPOSE 8000
 
 ARG DEV=false
     # Avoid python dependencies confliction
-RUN python -m venv /py && \    
+RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
-    apk add --update --no-cache postgresql-client && \
+    apk add --update --no-cache postgresql-client jpeg-dev && \
     apk add --update --no-cache --virtual .tmp-build-deps \
         # These will be removed after running because we just require it and are not going to use it.
-        build-base postgresql-dev musl-dev && \
+        build-base postgresql-dev musl-dev zlib zlib-dev && \
     /py/bin/pip install -r /tmp/requirements.txt && \
     if [ $DEV = "true" ]; \
         then /py/bin/pip install -r /tmp/requirements.dev.txt ; \
@@ -33,7 +33,14 @@ RUN python -m venv /py && \
     adduser \
         --disabled-password \
         --no-create-home \
-        django-user
+        django-user && \
+    # -p helps creating all sub-dir
+    mkdir -p /vol/web/media && \
+    mkdir -p /vol/web/static && \
+    # Changing the owner of the dir to django-user, -R means recursivly call all sub-dir
+    chown -R django-user:django-user /vol && \
+    # Changing mode of dir(permission), 755 means the user can basicly modify everything in that dir
+    chmod -R 755 /vol
 
 # Update environment variable
 ENV PATH="/py/bin:$PATH"
