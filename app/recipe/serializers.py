@@ -13,7 +13,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = ['id', 'context']
+        fields = ['id', 'name']
         read_only_fields = ['id']
 
 
@@ -54,7 +54,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             # the model manager.
             tag_obj, created = Tag.objects.get_or_create(
                 user=auth_user,
-                # We can user context=tag['context'].
+                # We can use name=tag['name'].
                 # However, using **tag enables our codes to
                 # add new attrs in tag and make them passed in as well.
                 **tag

@@ -50,13 +50,13 @@ class PrivateTagsAPITests(TestCase):
 
     def test_retrieve_tags(self):
         """Test retrieving a list of tags."""
-        Tag.objects.create(user=self.user, context='Vagan')
-        Tag.objects.create(user=self.user, context='Beverage')
-        Tag.objects.create(user=self.user, context='Beef')
+        Tag.objects.create(user=self.user, name='Vagan')
+        Tag.objects.create(user=self.user, name='Beverage')
+        Tag.objects.create(user=self.user, name='Beef')
 
         res = self.client.get(TAGS_URL)
 
-        tags = Tag.objects.all().order_by('-context')
+        tags = Tag.objects.all().order_by('-name')
         serializer = TagSerializer(tags, many=True)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -65,32 +65,32 @@ class PrivateTagsAPITests(TestCase):
     def test_tags_limited_to_user(self):
         """Test list of tags is limited to authenticated user."""
         another = create_user(email='user2@example.com')
-        Tag.objects.create(user=another, context='Cookie')
-        tag = Tag.objects.create(user=self.user, context='Bread')
+        Tag.objects.create(user=another, name='Cookie')
+        tag = Tag.objects.create(user=self.user, name='Bread')
 
         res = self.client.get(TAGS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
-        self.assertEqual(res.data[0]['context'], tag.context)
+        self.assertEqual(res.data[0]['name'], tag.name)
         self.assertEqual(res.data[0]['id'], tag.id)
 
     def test_update_tag(self):
         """Test updating a tag"""
         # The implementations are in views.py
-        tag = Tag.objects.create(user=self.user, context='Bread')
+        tag = Tag.objects.create(user=self.user, name='Bread')
 
-        payload = {'context': 'Beef'}
+        payload = {'name': 'Beef'}
 
         res = self.client.patch(detail_url(tag.id), payload)
         tag.refresh_from_db()
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(tag.context, payload['context'])
+        self.assertEqual(tag.name, payload['name'])
 
     def test_delete_tag(self):
         """Test delete a tag."""
-        tag = Tag.objects.create(user=self.user, context='dessert')
+        tag = Tag.objects.create(user=self.user, name='dessert')
 
         res = self.client.delete(detail_url(tag.id))
 

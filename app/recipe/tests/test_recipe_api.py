@@ -229,7 +229,7 @@ class PrivateRecipeAPITests(TestCase):
             'title': 'Roasted Beef',
             'time_minutes': 30,
             'price': Decimal('5.50'),
-            'tags': [{'context': 'Beef'}, {'context': 'Dinner'}],
+            'tags': [{'name': 'Beef'}, {'name': 'Dinner'}],
         }
         res = self.client.post(RECIPES_URL, payload, format='json')
 
@@ -242,19 +242,19 @@ class PrivateRecipeAPITests(TestCase):
         self.assertEqual(recipe.tags.count(), 2)
         for tag in payload['tags']:
             exists = recipe.tags.filter(
-                context=tag['context'],
+                name=tag['name'],
                 user=self.user,
             ).exists()
             self.assertTrue(exists)
 
     def test_create_recipe_with_existing_tags(self):
         """Test creating a recipe with existing tag."""
-        tag_indian = Tag.objects.create(user=self.user, context='Indian')
+        tag_indian = Tag.objects.create(user=self.user, name='Indian')
         payload = {
             'title': 'Pongal',
             'time_minutes': 60,
             'price': Decimal('4.50'),
-            'tags': [{'context': 'Indian'}, {'context': 'Breakfast'}],
+            'tags': [{'name': 'Indian'}, {'name': 'Breakfast'}],
         }
         res = self.client.post(RECIPES_URL, payload, format='json')
 
@@ -266,7 +266,7 @@ class PrivateRecipeAPITests(TestCase):
         self.assertIn(tag_indian, recipe.tags.all())
         for tag in payload['tags']:
             exists = recipe.tags.filter(
-                context=tag['context'],
+                name=tag['name'],
                 user=self.user,
             ).exists()
             self.assertTrue(exists)
@@ -276,22 +276,22 @@ class PrivateRecipeAPITests(TestCase):
         recipe = create_recipe(user=self.user)
 
         payload = {
-            'tags': [{'context': 'Dinner'}]
+            'tags': [{'name': 'Dinner'}]
         }
         res = self.client.patch(detail_url(recipe.id), payload, format='json')
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        new_tag = Tag.objects.get(user=self.user, context='Dinner')
+        new_tag = Tag.objects.get(user=self.user, name='Dinner')
         self.assertIn(new_tag, recipe.tags.all())
 
     def test_update_recipe_assign_tag(self):
         """Test assigning an existing tag when updating a recipe."""
-        tag_breakfast = Tag.objects.create(user=self.user, context='Breakfast')
+        tag_breakfast = Tag.objects.create(user=self.user, name='Breakfast')
         recipe = create_recipe(user=self.user)
         recipe.tags.add(tag_breakfast)
 
-        tag_lunch = Tag.objects.create(user=self.user, context='Lunch')
-        payload = {'tags': [{'context': 'Lunch'}]}
+        tag_lunch = Tag.objects.create(user=self.user, name='Lunch')
+        payload = {'tags': [{'name': 'Lunch'}]}
         res = self.client.patch(detail_url(recipe.id), payload, format='json')
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -300,7 +300,7 @@ class PrivateRecipeAPITests(TestCase):
 
     def test_clear_recipe_tags(self):
         """Test clearing a recipes tags."""
-        tag = Tag.objects.create(user=self.user, context='Dessert')
+        tag = Tag.objects.create(user=self.user, name='Dessert')
         recipe = create_recipe(user=self.user)
         recipe.tags.add(tag)
 

@@ -73,6 +73,10 @@ class BaseRecipeAttrViewSet(mixins.UpdateModelMixin,
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        """Retrieve tags for authenticated user."""
+        return self.queryset.filter(user=self.request.user).order_by('-name')
+
 
 # GenericViewSet have to be put behind of Mixin
 # cause it can override behaviors
@@ -84,16 +88,8 @@ class TagViewSet(BaseRecipeAttrViewSet):
     serializer_class = serializers.TagSerializer
     queryset = Tag.objects.all()
 
-    def get_queryset(self):
-        """Retrieve tags for authenticated user."""
-        return self.queryset.filter(user=self.request.user).order_by('-context')    # noqa: E501
-
 
 class IngredientViewSet(BaseRecipeAttrViewSet):
     """Manage ingredients in the database."""
     serializer_class = serializers.IngredientSerializer
     queryset = Ingredient.objects.all()
-
-    def get_queryset(self):
-        """Retrieve ingredients for authenticated user."""
-        return self.queryset.filter(user=self.request.user).order_by('-name')
